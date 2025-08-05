@@ -78,21 +78,21 @@ async def upload_file(request: Request):
     }, status_code=201)
 
 # Add a route to list all resources
-@mcp.custom_route("/resources", methods=["GET"])
-async def list_resources(request: Request):
-    """List all registered resources"""
-    resources = []
-    # Access the resources from the MCP server
-    for uri, resource in mcp._resources.items():
-        resources.append({
-            "uri": uri,
-            "name": resource.name,
-            "description": resource.description,
-            "type": "text" if hasattr(resource, 'text') else "binary"
-        })
+# @mcp.custom_route("/resources", methods=["GET"])
+# async def list_resources(request: Request):
+#     """List all registered resources"""
+#     resources = []
+#     # Access the resources from the MCP server
+#     for uri, resource in mcp._resources.items():
+#         resources.append({
+#             "uri": uri,
+#             "name": resource.name,
+#             "description": resource.description,
+#             "type": "text" if hasattr(resource, 'text') else "binary"
+#         })
     
-    logger.info(f"Listing {len(resources)} registered resources")
-    return JSONResponse({"resources": resources, "count": len(resources)})
+#     logger.info(f"Listing {len(resources)} registered resources")
+#     return JSONResponse({"resources": resources, "count": len(resources)})
 
 if __name__ == "__main__":
     logger.info("Starting FastMCP server on http://localhost:8000")

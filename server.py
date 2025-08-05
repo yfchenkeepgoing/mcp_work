@@ -13,7 +13,9 @@ logger = logging.getLogger(__name__)
 mcp = FastMCP("LocalDocServer")
 
 # Define allowed file extensions to prevent executable uploads
-ALLOWED_EXTENSIONS = {".txt", ".md", ".pdf", ".jpg", ".jpeg", ".png"}
+# In the future we will support pdf, jpg, jpeg and png if OpenAI Files is integrated instead of just OpenAI Chat Messages
+# ALLOWED_EXTENSIONS = {".txt", ".md", ".pdf", ".jpg", ".jpeg", ".png"}
+ALLOWED_EXTENSIONS = {".txt", ".md"}
 
 # Custom route to handle file uploads
 @mcp.custom_route("/upload", methods=["POST"])
@@ -85,23 +87,6 @@ async def upload_file(request: Request):
         "description": description_value,
         "disk_path": str(file_path)
     }, status_code=201)
-
-# Add a route to list all resources
-# @mcp.custom_route("/resources", methods=["GET"])
-# async def list_resources(request: Request):
-#     """List all registered resources"""
-#     resources = []
-#     # Access the resources from the MCP server
-#     for uri, resource in mcp._resources.items():
-#         resources.append({
-#             "uri": uri,
-#             "name": resource.name,
-#             "description": resource.description,
-#             "type": "text" if hasattr(resource, 'text') else "binary"
-#         })
-    
-#     logger.info(f"Listing {len(resources)} registered resources")
-#     return JSONResponse({"resources": resources, "count": len(resources)})
 
 if __name__ == "__main__":
     logger.info("Starting FastMCP server on http://localhost:8000")

@@ -18,11 +18,17 @@
   <h2 style="text-align:center;">Upload a File</h2>
   <div id="dropzone">Drag & drop files here, or click to select</div>
   <input id="fileInput" type="file" multiple style="display:none;" />
+
+  <div style="text-align:center;margin-top:20px;">
+    <input id="descInput" type="text" placeholder="Enter file description" style="width:300px;" />
+    <button id="uploadBtn">Submit</button>
+  </div>
   
   <script>
     const dropzone = document.getElementById('dropzone');
     const fileInput = document.getElementById('fileInput');
     const uploadUrl = "http://localhost:8000/upload";
+    let selectedFiles = []; // keep selected files
     
     // Highlight dropzone on drag over
     dropzone.addEventListener('dragover', e => {
@@ -49,11 +55,29 @@
         fileInput.value = "";  // reset input
       }
     });
-    // Upload each file via fetch
+
+    // Override handleFiles: collect, don't upload immediately
     function handleFiles(fileList) {
-      for (const file of fileList) {
+      selectedFiles = Array.from(fileList); // replace current selection
+      console.log(`${selectedFiles.length} file(s) ready for upload.`);
+    }
+
+    // Submit button handler
+    document.getElementById('uploadBtn').addEventListener('click', () => {
+      const desc = document.getElementById('descInput').value.trim();
+      if (!desc) {
+        alert("Please enter a description.");
+        return;
+      }
+      if (selectedFiles.length === 0) {
+        alert("Please select at least one file.");
+        return;
+      }
+
+      for (const file of selectedFiles) {
         const formData = new FormData();
         formData.append("file", file);
+        formData.append("description", desc); // pass description
         fetch(uploadUrl, { method: "POST", body: formData })
           .then(response => response.json())
           .then(data => {
@@ -67,7 +91,12 @@
             console.error("Upload request error:", err);
           });
       }
-    }
+
+      // reset UI
+      selectedFiles = [];
+      fileInput.value = "";
+      document.getElementById('descInput').value = "";
+    });
   </script>
 </body>
 </html>

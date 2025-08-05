@@ -19,9 +19,17 @@ ALLOWED_EXTENSIONS = {".txt", ".md", ".pdf", ".jpg", ".jpeg", ".png"}
 @mcp.custom_route("/upload", methods=["POST"])
 async def upload_file(request: Request):
     form = await request.form()
+
+    # Validate mandatory fields
     if "file" not in form:
+        logger.warning("Upload rejected: no file part in form")
         return JSONResponse({"error": "No file provided"}, status_code=400)
+    if "description" not in form or not str(form["description"]).strip():
+        logger.warning("Upload rejected: description is missing")
+        return JSONResponse({"error": "Description is required"}, status_code=400)
+
     upload = form["file"]
+    description_value = str(form["description"]).strip()
     filename = upload.filename
     
     logger.info(f"Received upload request for file: {filename}")
@@ -55,15 +63,15 @@ async def upload_file(request: Request):
         text_content = data.decode("utf-8")
         resource = TextResource(
             uri=f"doc://{filename}",
-            name=filename, 
-            description=f"Text file {filename} (saved to {file_path})",
+            name=filename,
+            description=description_value,            # user input
             text=text_content
         )
     else:
         resource = BinaryResource(
             uri=f"doc://{filename}",
-            name=filename, 
-            description=f"Binary file {filename} (saved to {file_path})",
+            name=filename,
+            description=description_value,            # user input
             blob=data
         )
         
@@ -71,9 +79,10 @@ async def upload_file(request: Request):
     logger.info(f"Successfully registered resource: {filename} with URI {resource.uri}")
     
     return JSONResponse({
-        "status": "success", 
-        "uri": str(resource.uri), 
+        "status": "success",
+        "uri": str(resource.uri),
         "size": len(data),
+        "description": description_value,
         "disk_path": str(file_path)
     }, status_code=201)
 

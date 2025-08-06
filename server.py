@@ -4,6 +4,7 @@ from fastmcp import FastMCP
 from fastmcp.resources import TextResource, BinaryResource
 from starlette.requests import Request
 from starlette.responses import JSONResponse
+from uuid import uuid4
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -61,19 +62,21 @@ async def upload_file(request: Request):
     else:
         logger.error(f"File was NOT created on disk: {file_path}")
     
+    uri = f"doc:///{uuid4()}"
+
     if ext in [".txt", ".md"]:
         text_content = data.decode("utf-8")
         resource = TextResource(
-            uri=f"doc://{filename}",
+            uri=uri,
             name=filename,
-            description=description_value,            # user input
+            description=description_value, # user input
             text=text_content
         )
     else:
         resource = BinaryResource(
-            uri=f"doc://{filename}",
+            uri=uri,
             name=filename,
-            description=description_value,            # user input
+            description=description_value, # user input
             blob=data
         )
         

@@ -5,6 +5,7 @@ from fastmcp.resources import TextResource, BinaryResource
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from uuid import uuid4
+from pathlib import Path
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -43,7 +44,8 @@ async def upload_file(request: Request):
         return JSONResponse({"error": "File type not allowed"}, status_code=400)
     
     data = await upload.read()
-    logger.info(f"Read {len(data)} bytes from {filename}")
+    file_size = len(data)
+    logger.info(f"Read {file_size} bytes from {filename}")
     
     # Create uploads directory if it doesn't exist
     uploads_dir = Path("uploads")
@@ -63,12 +65,14 @@ async def upload_file(request: Request):
         logger.error(f"File was NOT created on disk: {file_path}")
     
     uri = f"doc:///{uuid4()}"
+    title = Path(filename).stem
 
     if ext in [".txt", ".md"]:
         text_content = data.decode("utf-8")
         resource = TextResource(
             uri=uri,
             name=filename,
+            title=title,
             description=description_value, # user input
             text=text_content
         )
@@ -76,17 +80,18 @@ async def upload_file(request: Request):
         resource = BinaryResource(
             uri=uri,
             name=filename,
+            title=title,
             description=description_value, # user input
             blob=data
         )
-        
+
     mcp.add_resource(resource)
     logger.info(f"Successfully registered resource: {filename} with URI {resource.uri}")
     
     return JSONResponse({
         "status": "success",
         "uri": str(resource.uri),
-        "size": len(data),
+        "size": file_size,
         "description": description_value,
         "disk_path": str(file_path)
     }, status_code=201)

@@ -5,7 +5,6 @@ from fastmcp.resources import TextResource, BinaryResource
 from starlette.requests import Request
 from starlette.responses import JSONResponse
 from uuid import uuid4
-from pathlib import Path
 
 # Set up logging
 logging.basicConfig(level=logging.INFO)
@@ -13,6 +12,28 @@ logger = logging.getLogger(__name__)
 
 # Initialize the FastMCP server
 mcp = FastMCP("LocalDocServer")
+
+# Pre-load the Contoso compliance document so it is always available
+COMPLIANCE_URI = "doc://compliance-1"
+compliance_content = (
+    "# Contoso Organization Azure Compliance Rules\n\n"
+    "## Resource Naming Conventions\n"
+    '1. All Azure resources MUST start with the prefix "contoso"'
+)
+
+try:
+    mcp.add_resource(
+        TextResource(
+            uri=COMPLIANCE_URI,
+            name="compliance 1.md",
+            title="Contoso Organization Azure Compliance Rules",
+            description="Resource Naming Conventions",
+            text=compliance_content
+        )
+    )
+    logger.info(f"Preloaded compliance resource with URI {COMPLIANCE_URI}")
+except Exception as exc:
+    logger.debug(f"Compliance resource already registered: {exc}")
 
 # Define allowed file extensions to prevent executable uploads
 # In the future we will support pdf, jpg, jpeg and png if OpenAI Files is integrated instead of just OpenAI Chat Messages
